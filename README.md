@@ -1,5 +1,9 @@
+
 # avian-shield
+
+![avian-shield connection diagram](docs/avian-shield-connection.png)
 An ESP32-based ultrasonic and acoustic bird deterrent system. avian-shield uses randomized cycles of predator calls (hawk, owl, and cat) to protect fruit trees and balconies without the need for harmful chemicals or physical barriers.
+
 
 # Hardware
 Components 
@@ -12,8 +16,8 @@ Components
 
 # Power supply harness    
 - Power source: 12V Battery 
-- 5V supply to MAX98357A through NTE960 
-- 3.7V supply to ESP32-WROOM-32 
+- 5V supply regulator MAX98357A OR NTE960 
+- 220uF Capacitor at the output of regulator
 
 # Audio connections
 The MAX98357A uses I2S (Inter-IC Sound) protocol. All I2S pins on the ESP32 are software-configurable.
@@ -34,6 +38,7 @@ The MAX98357A uses I2S (Inter-IC Sound) protocol. All I2S pins on the ESP32 are 
 |---------------|---------|
 | OUT+          | Speaker + |
 | OUT−          | Speaker − |
+
 
 # IDE 
 For this project we used VS Code + PlatformIO and Claude code integration.

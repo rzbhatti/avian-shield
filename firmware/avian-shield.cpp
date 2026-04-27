@@ -1,28 +1,30 @@
 /*
- * Avian Shield – main firmware
+ * Avian Shield – main firmware v2.0
  *
- * Plays bobcat.wav / hawk.wav / owl.wav in random order over I2S with a
- * 500 ms pause between clips. Audio is embedded directly in the binary via
- * PlatformIO's board_build.embed_files (see platformio.ini).
+ * Plays hawk.wav / falcon.wav / owl.wav randomly with 500 ms gaps.
+ * Every 12th sound is bobcat.wav. Audio is embedded directly in the binary
+ * via PlatformIO's board_build.embed_files (see platformio.ini).
  *
  * Hardware: ESP32 DOIT DevKit V1 + MAX98357A I2S amplifier
  *   BCLK  → GPIO 26
  *   LRCLK → GPIO 25
  *   DOUT  → GPIO 22
  *
- * Setup: copy media/bobcat.wav, hawk.wav, owl.wav into <pio-project>/data/
+ * Setup: copy media/bobcat.wav, hawk.wav, owl.wav, falcon.wav into <pio-project>/data/
  */
 
 #include <Arduino.h>
 #include <driver/i2s.h>
 
-// Symbols injected by board_build.embed_files = data/bobcat.wav ...
-extern const uint8_t bobcat_start[] asm("_binary_data_bobcat_wav_start");
-extern const uint8_t bobcat_end[]   asm("_binary_data_bobcat_wav_end");
-extern const uint8_t hawk_start[]   asm("_binary_data_hawk_wav_start");
-extern const uint8_t hawk_end[]     asm("_binary_data_hawk_wav_end");
-extern const uint8_t owl_start[]    asm("_binary_data_owl_wav_start");
-extern const uint8_t owl_end[]      asm("_binary_data_owl_wav_end");
+// Symbols injected by board_build.embed_files
+extern const uint8_t bobcat_start[]  asm("_binary_data_bobcat_wav_start");
+extern const uint8_t bobcat_end[]    asm("_binary_data_bobcat_wav_end");
+extern const uint8_t hawk_start[]    asm("_binary_data_hawk_wav_start");
+extern const uint8_t hawk_end[]      asm("_binary_data_hawk_wav_end");
+extern const uint8_t owl_start[]     asm("_binary_data_owl_wav_start");
+extern const uint8_t owl_end[]       asm("_binary_data_owl_wav_end");
+extern const uint8_t falcon_start[]  asm("_binary_data_falcon_wav_start");
+extern const uint8_t falcon_end[]    asm("_binary_data_falcon_wav_end");
 
 #define I2S_PORT       I2S_NUM_0
 #define I2S_BCLK_PIN   26
@@ -100,22 +102,27 @@ static void playWav(const uint8_t *start, const uint8_t *end, const char *name) 
 
 struct Clip { const uint8_t *start, *end; const char *name; };
 
-static const Clip clips[] = {
-    { bobcat_start, bobcat_end, "bobcat" },
+static const Clip birdClips[] = {
     { hawk_start,   hawk_end,   "hawk"   },
+    { falcon_start, falcon_end, "falcon" },
     { owl_start,    owl_end,    "owl"    },
 };
-static constexpr int NUM_CLIPS = sizeof(clips) / sizeof(clips[0]);
+static constexpr int NUM_BIRDS = sizeof(birdClips) / sizeof(birdClips[0]);
+
+static const Clip bobcat = { bobcat_start, bobcat_end, "bobcat" };
+
+static int soundCount = 0;
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("\nAvian Shield v1.0");
+    Serial.println("\nAvian Shield v2.0");
     randomSeed(esp_random());
     setupI2S();
 }
 
 void loop() {
-    int i = random(NUM_CLIPS);
-    playWav(clips[i].start, clips[i].end, clips[i].name);
+    soundCount++;
+    const Clip *c = (soundCount % 12 == 0) ? &bobcat : &birdClips[random(NUM_BIRDS)];
+    playWav(c->start, c->end, c->name);
     delay(500);
 }
